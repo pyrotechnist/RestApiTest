@@ -3,6 +3,7 @@ package com.longyuan.restapitest;
 import com.longyuan.restapitest.data.Promotion;
 import com.longyuan.restapitest.data.PromotionsRepository;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -25,7 +26,15 @@ public class MainPresenter implements MainContarct.Presenter{
 
     @Override
     public List<Promotion> loadPromotions() {
-        List<Promotion> promotionList =  mPromotionsRepository.getPromotions();
+
+        List<Promotion> promotionList = null;
+        try {
+            promotionList =  mPromotionsRepository.getPromotions();
+        }catch (IOException ie){
+
+
+        }
+
         return  promotionList;
     }
 
