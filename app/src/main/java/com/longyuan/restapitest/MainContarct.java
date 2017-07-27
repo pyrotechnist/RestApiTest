@@ -22,7 +22,7 @@ public class MainContarct {
 
         void start();
 
-        List<Promotion> loadPromotions();
+        void loadPromotions();
 
 
     }

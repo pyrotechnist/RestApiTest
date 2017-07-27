@@ -2,6 +2,7 @@ package com.longyuan.restapitest;
 
 import com.longyuan.restapitest.data.Promotion;
 import com.longyuan.restapitest.data.PromotionsRepository;
+import com.longyuan.restapitest.utils.LoadDataCallback;
 
 import java.io.IOException;
 import java.util.List;
@@ -25,23 +26,23 @@ public class MainPresenter implements MainContarct.Presenter{
     }
 
     @Override
-    public List<Promotion> loadPromotions() {
+    public void loadPromotions() {
 
-        List<Promotion> promotionList = null;
         try {
-            promotionList =  mPromotionsRepository.getPromotions();
+            mPromotionsRepository.getPromotions(new LoadDataCallback() {
+                @Override
+                public void onTasksLoaded(List<Promotion> promotions) {
+                    mMainView.displayPromnotions(promotions);
+                }
+            });
         }catch (IOException ie){
-
-
         }
 
-        return  promotionList;
     }
 
 
     @Override
     public void start() {
-        mMainView.displayPromnotions(loadPromotions());
-
+        loadPromotions();
     }
 }

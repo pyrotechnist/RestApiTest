@@ -5,12 +5,17 @@ import android.os.AsyncTask;
 import android.support.v4.app.LoaderManager;
 import android.util.Log;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+import com.longyuan.restapitest.utils.ApiAction;
 import com.longyuan.restapitest.utils.LoadDataCallback;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -28,6 +33,12 @@ import okio.Okio;
 public class PromotionsRepository {
 
     private static  List<Promotion> mPromotions;
+
+    private LoadDataCallback mLoadDataCallback;
+
+    private ApiAction action;
+
+    private Map<String,Promotion> mCachedPromotions;
 
     static {
         mPromotions = new ArrayList<Promotion>();
@@ -49,7 +60,17 @@ public class PromotionsRepository {
         return INSTANCE;
     }
 
-    public List<Promotion> getPromotions() throws IOException{
+    public void getPromotions(LoadDataCallback callback) throws IOException{
+        getPromotions(callback,false);
+
+    }
+
+    public void getPromotions(LoadDataCallback callback, boolean forceUpdate) throws IOException{
+
+        mLoadDataCallback = callback;
+
+        action = ApiAction.Find;
+
 
      /*   OkHttpClient client = new OkHttpClient();
 
@@ -82,11 +103,36 @@ public class PromotionsRepository {
             }
         });*/
 
+       if(!forceUpdate)
+       {
+
+         // callback.onTasksLoaded(mCachedPromotions.values());
+       }
+       else
+       {
+
+           OkHttpHandler okHttpHandler= new OkHttpHandler();
+
+           okHttpHandler.execute("http://10.0.2.2:1337/promotion");
+       }
 
 
 
-        return mPromotions;
+
+
     }
+
+    public void deletePromotion(String promotionId){
+
+        action = ApiAction.Destroy;
+
+        OkHttpHandler okHttpHandler= new OkHttpHandler();
+
+        okHttpHandler.execute("http://10.0.2.2:1337/promotion/destroy/"+promotionId);
+
+    }
+
+
 
     /**
      *
@@ -130,8 +176,27 @@ public class PromotionsRepository {
 
         @Override
         protected void onPostExecute(String s) {
-            //mMainFragment.dismissProgressDialog();
-            //mMainFragment.showTestcases(s);
+            String promotionJson = s;
+
+            Gson gson = new GsonBuilder().create();
+
+            if(action == ApiAction.Find) {
+
+                List<Promotion> promotions = gson.fromJson(s, new TypeToken<List<Promotion>>() {}.getType());
+
+               // mCachedPromotions = promotions;
+
+                mLoadDataCallback.onTasksLoaded(promotions);
+            }else if(action == ApiAction.Destroy)
+            {
+                Promotion promotion =  gson.fromJson(s, Promotion.class);
+
+
+
+
+            }
+
+
 
         }
     }
