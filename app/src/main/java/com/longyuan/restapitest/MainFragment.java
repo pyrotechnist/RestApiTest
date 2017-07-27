@@ -8,8 +8,10 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 
 import com.longyuan.restapitest.data.Promotion;
+import com.longyuan.restapitest.utils.OnItemClickListener;
 import com.longyuan.restapitest.utils.PromotionsRecyclerViewAdapter;
 
 import java.util.ArrayList;
@@ -26,7 +28,6 @@ public class MainFragment extends Fragment implements MainContarct.View{
     private PromotionsRecyclerViewAdapter mPromotionsRecyclerViewAdapter;
 
     private RecyclerView mRecyclerView;
-
 
     public static MainFragment getInstance() {
         return  new MainFragment();
@@ -48,6 +49,15 @@ public class MainFragment extends Fragment implements MainContarct.View{
         mRecyclerView = (RecyclerView) roorView.findViewById(R.id.promotions_list);
 
         mPromotionsRecyclerViewAdapter = new PromotionsRecyclerViewAdapter(new ArrayList<Promotion>());
+
+        mPromotionsRecyclerViewAdapter.setItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(Promotion item) {
+
+            }
+        });
+
+
 
         mRecyclerView.setLayoutManager(new LinearLayoutManager(mRecyclerView.getContext()));
         mRecyclerView.setAdapter(mPromotionsRecyclerViewAdapter);

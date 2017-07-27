@@ -19,7 +19,7 @@ public class PromotionsRecyclerViewAdapter extends RecyclerView.Adapter<Promotio
 
     private List<Promotion> mPromotions;
 
-
+    private OnItemClickListener mItemClickListener;
 
     public PromotionsRecyclerViewAdapter(List<Promotion> promotionList){
 
@@ -34,7 +34,6 @@ public class PromotionsRecyclerViewAdapter extends RecyclerView.Adapter<Promotio
         View itemView = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.promotion_item, parent, false);
 
-
         return new PromotionViewHolder(itemView);
     }
 
@@ -42,6 +41,15 @@ public class PromotionsRecyclerViewAdapter extends RecyclerView.Adapter<Promotio
     public void onBindViewHolder(PromotionViewHolder holder, int position) {
 
         final Promotion promotion = mPromotions.get(position);
+
+        View.OnClickListener listener = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mItemClickListener.onItemClick(promotion);
+            }
+        };
+
+        holder.itemView.setOnClickListener(listener);
 
         holder.mTextViewId.setText(promotion.getId());
 
@@ -57,6 +65,10 @@ public class PromotionsRecyclerViewAdapter extends RecyclerView.Adapter<Promotio
         mPromotions = promotionList;
 
         notifyDataSetChanged();
+    }
+
+    public void setItemClickListener(OnItemClickListener mItemClickListener) {
+        this.mItemClickListener = mItemClickListener;
     }
 
     public static class PromotionViewHolder extends RecyclerView.ViewHolder{

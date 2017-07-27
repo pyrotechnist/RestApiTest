@@ -24,6 +24,8 @@ public class MainContarct {
 
         void loadPromotions();
 
+        void deletePromotions(String promotionId);
+
 
     }
 

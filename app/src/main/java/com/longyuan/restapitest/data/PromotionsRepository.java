@@ -103,7 +103,7 @@ public class PromotionsRepository {
             }
         });*/
 
-       if(!forceUpdate)
+       if(forceUpdate)
        {
 
          // callback.onTasksLoaded(mCachedPromotions.values());
@@ -184,9 +184,12 @@ public class PromotionsRepository {
 
                 List<Promotion> promotions = gson.fromJson(s, new TypeToken<List<Promotion>>() {}.getType());
 
-               // mCachedPromotions = promotions;
+                for (Promotion promotion : promotions) {
+                    mCachedPromotions.put(promotion.getId(),promotion);
+                           }
 
                 mLoadDataCallback.onTasksLoaded(promotions);
+
             }else if(action == ApiAction.Destroy)
             {
                 Promotion promotion =  gson.fromJson(s, Promotion.class);

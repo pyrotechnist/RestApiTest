@@ -40,6 +40,10 @@ public class MainPresenter implements MainContarct.Presenter{
 
     }
 
+    @Override
+    public void deletePromotions(String promotionId) {
+        mPromotionsRepository.deletePromotion(promotionId);
+    }
 
     @Override
     public void start() {
