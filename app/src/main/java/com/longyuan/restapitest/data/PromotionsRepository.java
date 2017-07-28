@@ -14,6 +14,7 @@ import com.longyuan.restapitest.utils.LoadDataCallback;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -32,19 +33,19 @@ import okio.Okio;
 
 public class PromotionsRepository {
 
-    private static  List<Promotion> mPromotions;
+    private static List<Promotion> mPromotions;
 
-    private LoadDataCallback mLoadDataCallback;
+    private static LoadDataCallback mLoadDataCallback;
 
     private ApiAction action;
 
-    private Map<String,Promotion> mCachedPromotions;
+    private static Map<String, Promotion> mCachedPromotions = new LinkedHashMap<>();
 
     static {
         mPromotions = new ArrayList<Promotion>();
-        mPromotions.add(new Promotion("1","Better 1"));
-        mPromotions.add(new Promotion("2","Good 1"));
-        mPromotions.add(new Promotion("3","Good 2"));
+        mPromotions.add(new Promotion("1", "Better 1"));
+        mPromotions.add(new Promotion("2", "Good 1"));
+        mPromotions.add(new Promotion("3", "Good 2"));
 
     }
 
@@ -60,12 +61,12 @@ public class PromotionsRepository {
         return INSTANCE;
     }
 
-    public void getPromotions(LoadDataCallback callback) throws IOException{
-        getPromotions(callback,false);
+    public void getPromotions(LoadDataCallback callback) throws IOException {
+        getPromotions(callback, false);
 
     }
 
-    public void getPromotions(LoadDataCallback callback, boolean forceUpdate) throws IOException{
+    public void getPromotions(LoadDataCallback callback, boolean forceUpdate) throws IOException {
 
         mLoadDataCallback = callback;
 
@@ -103,41 +104,33 @@ public class PromotionsRepository {
             }
         });*/
 
-       if(forceUpdate)
-       {
+        if (!forceUpdate && !mCachedPromotions.isEmpty()) {
 
-         // callback.onTasksLoaded(mCachedPromotions.values());
-       }
-       else
-       {
+            callback.onTasksLoaded(new ArrayList<Promotion>(mCachedPromotions.values()));
+        } else {
 
-           OkHttpHandler okHttpHandler= new OkHttpHandler();
+            OkHttpHandler okHttpHandler = new OkHttpHandler();
 
-           okHttpHandler.execute("http://10.0.2.2:1337/promotion");
-       }
-
-
-
-
-
+            okHttpHandler.execute("http://10.0.2.2:1337/promotion");
+        }
     }
 
-    public void deletePromotion(String promotionId){
+    public void deletePromotion(String promotionId, LoadDataCallback callback) {
 
         action = ApiAction.Destroy;
 
-        OkHttpHandler okHttpHandler= new OkHttpHandler();
+        mLoadDataCallback = callback;
 
-        okHttpHandler.execute("http://10.0.2.2:1337/promotion/destroy/"+promotionId);
+        OkHttpHandler okHttpHandler = new OkHttpHandler();
+
+        okHttpHandler.execute("http://10.0.2.2:1337/promotion/destroy/" + promotionId);
 
     }
-
-
 
     /**
      *
      */
-    public class OkHttpHandler extends AsyncTask<String,String,String> {
+    public class OkHttpHandler extends AsyncTask<String, String, String> {
 
         @Override
         protected void onPreExecute() {
@@ -180,27 +173,26 @@ public class PromotionsRepository {
 
             Gson gson = new GsonBuilder().create();
 
-            if(action == ApiAction.Find) {
+            if (action == ApiAction.Find) {
 
-                List<Promotion> promotions = gson.fromJson(s, new TypeToken<List<Promotion>>() {}.getType());
+                List<Promotion> promotions = gson.fromJson(s, new TypeToken<List<Promotion>>() {
+                }.getType());
 
+                mCachedPromotions.clear();
                 for (Promotion promotion : promotions) {
-                    mCachedPromotions.put(promotion.getId(),promotion);
-                           }
+                    mCachedPromotions.put(promotion.getId(), promotion);
+                }
 
                 mLoadDataCallback.onTasksLoaded(promotions);
 
-            }else if(action == ApiAction.Destroy)
-            {
-                Promotion promotion =  gson.fromJson(s, Promotion.class);
+            } else if (action == ApiAction.Destroy) {
+                Promotion promotion = gson.fromJson(s, Promotion.class);
 
-
-
-
+                if (promotion != null) {
+                    mCachedPromotions.remove(promotion.getId());
+                    mLoadDataCallback.onTasksLoaded(new ArrayList<Promotion>(mCachedPromotions.values()));
+                }
             }
-
-
-
         }
     }
 

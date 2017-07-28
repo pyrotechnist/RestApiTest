@@ -42,7 +42,12 @@ public class MainPresenter implements MainContarct.Presenter{
 
     @Override
     public void deletePromotions(String promotionId) {
-        mPromotionsRepository.deletePromotion(promotionId);
+        mPromotionsRepository.deletePromotion(promotionId,new LoadDataCallback() {
+            @Override
+            public void onTasksLoaded(List<Promotion> promotions) {
+                mMainView.displayPromnotions(promotions);
+            }
+        });
     }
 
     @Override

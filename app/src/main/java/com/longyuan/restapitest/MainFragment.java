@@ -53,7 +53,7 @@ public class MainFragment extends Fragment implements MainContarct.View{
         mPromotionsRecyclerViewAdapter.setItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(Promotion item) {
-
+                mPresenter.deletePromotions(item.getId());
             }
         });
 
