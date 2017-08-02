@@ -1,5 +1,7 @@
 package com.longyuan.restapitest.data;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * Created by loxu on 26/07/2017.
  */
@@ -11,10 +13,12 @@ public class Promotion {
         this.title = title;
     }
 
+    @SerializedName("id")
     String id;
 
     String image;
 
+    @SerializedName("title")
     String title;
 
     public String getId() {

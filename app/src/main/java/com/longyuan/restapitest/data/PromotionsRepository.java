@@ -10,6 +10,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.longyuan.restapitest.utils.ApiAction;
 import com.longyuan.restapitest.utils.LoadDataCallback;
+import com.longyuan.restapitest.utils.PromotionAPI;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,14 +19,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
-import okio.BufferedSink;
-import okio.Okio;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
  * Created by loxu on 26/07/2017.
@@ -38,6 +36,8 @@ public class PromotionsRepository {
     private static LoadDataCallback mLoadDataCallback;
 
     private ApiAction action;
+
+    private PromotionAPI mPromotionAPI;
 
     private static Map<String, Promotion> mCachedPromotions = new LinkedHashMap<>();
 
@@ -104,7 +104,9 @@ public class PromotionsRepository {
             }
         });*/
 
-        if (!forceUpdate && !mCachedPromotions.isEmpty()) {
+
+        // OKHTTP solution
+        /*if (!forceUpdate && !mCachedPromotions.isEmpty()) {
 
             callback.onTasksLoaded(new ArrayList<Promotion>(mCachedPromotions.values()));
         } else {
@@ -112,7 +114,13 @@ public class PromotionsRepository {
             OkHttpHandler okHttpHandler = new OkHttpHandler();
 
             okHttpHandler.execute("http://10.0.2.2:1337/promotion");
-        }
+        }*/
+
+
+        createPromotionsAPI();
+        mPromotionAPI.getPromotions().enqueue(promotionCallback);
+
+
     }
 
     public void deletePromotion(String promotionId, LoadDataCallback callback) {
@@ -121,15 +129,49 @@ public class PromotionsRepository {
 
         mLoadDataCallback = callback;
 
-        OkHttpHandler okHttpHandler = new OkHttpHandler();
+        //OkHttpHandler okHttpHandler = new OkHttpHandler();
 
-        okHttpHandler.execute("http://10.0.2.2:1337/promotion/destroy/" + promotionId);
+        ///okHttpHandler.execute("http://10.0.2.2:1337/promotion/destroy/" + promotionId);
 
     }
 
-    /**
-     *
-     */
+
+    private void createPromotionsAPI() {
+        Gson gson = new GsonBuilder()
+                .setDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+                .create();
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(PromotionAPI.BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .build();
+
+        mPromotionAPI = retrofit.create(PromotionAPI.class);
+    }
+
+    Callback<List<Promotion>> promotionCallback = new Callback<List<Promotion>>() {
+        @Override
+        public void onFailure(Call<List<Promotion>> call, Throwable t) {
+
+        }
+
+        @Override
+        public void onResponse(Call<List<Promotion>> call, Response<List<Promotion>> response) {
+            if (response.isSuccessful()) {
+                List<Promotion> data = new ArrayList<>();
+                data.addAll(response.body());
+                mLoadDataCallback.onTasksLoaded(data);
+                //recyclerView.setAdapter(new RecyclerViewAdapter(data));
+            } else {
+                Log.d("QuestionsCallback", "Code: " + response.code() + " Message: " + response.message());
+            }
+        }
+    };
+
+
+
+
+    /*
     public class OkHttpHandler extends AsyncTask<String, String, String> {
 
         @Override
@@ -161,11 +203,6 @@ public class PromotionsRepository {
             return null;
         }
 
-       /* protected void onProgressUpdate(String... progress) {
-            Log.d("ANDRO_ASYNC", progress[0]);
-            mMainFragment.updateDialog(Integer.parseInt(progress[0]));
-        }
-*/
 
         @Override
         protected void onPostExecute(String s) {
@@ -194,6 +231,7 @@ public class PromotionsRepository {
                 }
             }
         }
-    }
+    }*/
+
 
 }
