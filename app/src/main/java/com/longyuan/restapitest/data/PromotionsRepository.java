@@ -11,6 +11,7 @@ import com.google.gson.reflect.TypeToken;
 import com.longyuan.restapitest.utils.ApiAction;
 import com.longyuan.restapitest.utils.LoadDataCallback;
 import com.longyuan.restapitest.utils.PromotionAPI;
+import com.longyuan.restapitest.utils.PromotionRxAPI;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,7 +24,14 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
+import rx.Observer;
+import rx.Single;
+import rx.Subscriber;
+import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 /**
  * Created by loxu on 26/07/2017.
@@ -38,6 +46,8 @@ public class PromotionsRepository {
     private ApiAction action;
 
     private PromotionAPI mPromotionAPI;
+
+    private PromotionRxAPI mPromotionRxAPI;
 
     private static Map<String, Promotion> mCachedPromotions = new LinkedHashMap<>();
 
@@ -66,7 +76,7 @@ public class PromotionsRepository {
 
     }
 
-    public void getPromotions(LoadDataCallback callback, boolean forceUpdate) throws IOException {
+    public void getPromotions(final LoadDataCallback callback, boolean forceUpdate) throws IOException {
 
         mLoadDataCallback = callback;
 
@@ -118,7 +128,39 @@ public class PromotionsRepository {
 
 
         createPromotionsAPI();
-        mPromotionAPI.getPromotions().enqueue(promotionCallback);
+        // retrofit
+        //mPromotionAPI.getPromotions().enqueue(promotionCallback);
+
+
+        // rx
+        mPromotionRxAPI.getPromotions()
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(myData -> {
+                    callback.onTasksLoaded(myData);
+                }, throwable -> {
+                    // handle error event
+                });
+
+
+
+
+                  /*  @Override
+                    public void onCompleted() {
+
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onNext(List<Promotion> promotionList) {
+
+                        callback.onTasksLoaded(promotionList);
+                    }*/
+                        // });
 
 
     }
@@ -140,13 +182,23 @@ public class PromotionsRepository {
         Gson gson = new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
                 .create();
-
+/*
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(PromotionAPI.BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .build();
 
-        mPromotionAPI = retrofit.create(PromotionAPI.class);
+        mPromotionAPI = retrofit.create(PromotionAPI.class);*/
+
+
+       Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(PromotionAPI.BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+                .build();
+
+
+        mPromotionRxAPI = retrofit.create(PromotionRxAPI.class);
     }
 
     Callback<List<Promotion>> promotionCallback = new Callback<List<Promotion>>() {
